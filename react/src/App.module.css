@@ -1,0 +1,16 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 1rem;
+}
+
+.card {
+  border-radius: 1rem;
+  border: 1px solid #EEE;
+  padding: 1rem;
+}
+
+.fav {
+  background-color: gold;
+}

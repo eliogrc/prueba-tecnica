@@ -1,0 +1,13 @@
+<div class="container">
+  <h1>App comparador de pokemones</h1>
+  <input placeholder="Buscar pokemon" (input)="onSearch($event)" />
+  <div class="grid">
+    @for(p of this.filteredPokemons(); track p.id) {
+      <div class="card">
+        <img [src]="p.image" alt="p.name" width="80" />
+        <h2>{{p.name}}</h2>
+        <button (click)="addCompare(p)">Comparar</button>
+      </div>
+    }
+  </div>
+</div>
