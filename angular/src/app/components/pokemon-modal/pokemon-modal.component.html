@@ -1,0 +1,46 @@
+<div class="modal-backdrop" (click)="close()">
+  <div 
+    class="modal-content" 
+    role="dialog" 
+    aria-modal="true" 
+    (click)="$event.stopPropagation()"
+    #modalContainer
+    tabindex="-1"
+  >
+    <button class="close-btn" (click)="close()" aria-label="Cerrar modal">X</button>
+    
+    @if (pokemon) {
+      <div class="modal-body">
+        <h2>{{ pokemon.name | uppercase }}</h2>
+        <img [src]="pokemon.sprites?.front_default" [alt]="pokemon.name" width="150" />
+        
+        <div class="stats-grid">
+          <div>
+            <strong>Altura:</strong> {{ pokemon.height }} dm
+          </div>
+          <div>
+            <strong>Peso:</strong> {{ pokemon.weight }} hg
+          </div>
+        </div>
+
+        <div class="types-list">
+          <strong>Tipos:</strong>
+          <ul>
+            @for(t of pokemon.types; track t.type.name) {
+              <li>{{ t.type.name }}</li>
+            }
+          </ul>
+        </div>
+        
+        <div class="moves-list">
+          <strong>Movimientos destacados:</strong>
+          <ul>
+            @for(m of pokemon.moves.slice(0, 5); track m.move.name) {
+              <li>{{ m.move.name }}</li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  </div>
+</div>
