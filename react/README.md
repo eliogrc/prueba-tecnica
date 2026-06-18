@@ -8,3 +8,7 @@ App de pokemones. Listado y favoritos.
 ## Vista
 ![alt text](image.png)
 ![alt text](image-1.png)
+
+
+## Vista después de complementar la prueba.
+![alt text](image-2.png)

@@ -1,38 +1,41 @@
 import { useState, useEffect } from "react";
 import type { Pokemon } from "../types/pokemon";
+import { useLocalStorage } from "./useLocalStorage";
 
-const BASE_URL_API = "https://pokeapi.co/api/v2/pokemon?limit=50&offset=0";
-const BASE_URL_DETAIL = "https://pokeapi.co/api/v2/pokemon/";
+const BASE_URL_API = "https://pokeapi.co/api/v2/";
 
 export function usePokemonList() {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useLocalStorage<number[]>("favs", []);
+  const [offset, setOffset] = useState(0);
+
+  const [types, setTypes] = useState<any[]>([]);
+
+  const fetchPokes = async (currentOffset: number) => {
+    const resp = await fetch(`${BASE_URL_API}pokemon?limit=20&offset=${currentOffset}`);
+    const respData = await resp.json();
+
+    const parseData = respData.results.map((p: any) => {
+      const idMatch = p.url.match(/\d+/g);
+      const id = idMatch ? parseInt(idMatch[1], 10) : 0;
+      return { id, name: p.name, url: p.url };
+    });
+
+    if (currentOffset === 0) {
+      setPokemons(parseData);
+    } else {
+      setPokemons(prev => [...prev, ...parseData]);
+    }
+  };
 
   useEffect(() => {
-    async function fetchPokes() {
-      const resp = await fetch(BASE_URL_API);
+    fetchPokes(offset);
+  }, [offset]);
 
-      const respData = await resp.json();
-
-      const parseData = await Promise.all(
-        respData.results.map(async (p: any) => {
-          const id = p.url.match(/\d+/g)[1];
-
-          const detalle = await fetchPokesDetail(id);
-
-          return { id, name: p.name, image: detalle.sprites.back_default };
-        }),
-      );
-
-      console.log("Pokemons:", parseData);
-
-      setPokemons(parseData);
-      const favsLocal = localStorage.getItem("favs");
-
-      if (favsLocal) setFavorites(JSON.parse(favsLocal));
-    }
-
-    fetchPokes();
+  useEffect(() => {
+    fetch(`${BASE_URL_API}type`)
+      .then(r => r.json())
+      .then(d => setTypes(d.results));
   }, []);
 
   const toogleFavs = (id: number) => {
@@ -41,15 +44,35 @@ export function usePokemonList() {
       : [...favorites, id];
 
     setFavorites(updatedFavs);
-
-    localStorage.setItem("favs", JSON.stringify(updatedFavs));
   };
 
-  return { pokemons, favorites, toogleFavs };
-}
+  const loadMore = () => setOffset(prev => prev + 20);
 
-async function fetchPokesDetail(id: number) {
-  const detailPk = await fetch(`${BASE_URL_DETAIL}${id}`);
+  const fetchPokemonsByType = async (typeUrl: string) => {
+    if (!typeUrl) {
+      if (offset !== 0) {
+        setOffset(0);
+      } else {
+        fetchPokes(0);
+      }
+      return;
+    }
+    const resp = await fetch(typeUrl);
+    const data = await resp.json();
+    const parseData = data.pokemon.map((p: any) => {
+      const idMatch = p.pokemon.url.match(/\d+/g);
+      const id = idMatch ? parseInt(idMatch[1], 10) : 0;
+      return { id, name: p.pokemon.name, url: p.pokemon.url };
+    });
+    setPokemons(parseData);
+  };
 
-  return await detailPk.json();
+  return {
+    pokemons,
+    favorites,
+    toogleFavs,
+    loadMore,
+    types,
+    fetchPokemonsByType
+  };
 }
